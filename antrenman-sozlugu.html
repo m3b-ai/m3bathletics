@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>m3b Antrenman Sözlüğü</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --border: #222;
+    --accent: #c8f04b;
+    --accent-dim: rgba(200,240,75,0.12);
+    --accent-soft: rgba(200,240,75,0.06);
+    --text: #e8e8e8;
+    --muted: #666;
+    --tag-bg: #1a1a1a;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    padding: 48px 24px 32px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(13,13,13,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 900px;
+    margin: 0 auto 20px;
+  }
+  .brand {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .stats-row {
+    display: flex;
+    gap: 24px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+  .stats-row span { color: var(--accent); }
+  h1 {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    max-width: 900px;
+    margin: 0 auto 6px;
+  }
+  .subtitle {
+    max-width: 900px;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* SEARCH + FILTER */
+  .controls {
+    max-width: 900px;
+    margin: 20px auto 0;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+  }
+  .search-wrap input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px 10px 38px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--muted); }
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+    pointer-events: none;
+  }
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* MAIN */
+  main {
+    max-width: 900px;
+    margin: 32px auto;
+    padding: 0 24px 80px;
+  }
+
+  /* CATEGORY HEADER */
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 48px 0 16px;
+  }
+  .category-header:first-of-type { margin-top: 0; }
+  .cat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .cat-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .cat-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* CARDS */
+  .cards {
+    display: grid;
+    gap: 10px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+  .card:hover { border-color: #333; }
+  .card.open { border-color: var(--accent); }
+
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    gap: 16px;
+  }
+  .card-left { flex: 1; min-width: 0; }
+  .card-en {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .card-tr {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-arrow {
+    color: var(--muted);
+    font-size: 16px;
+    transition: transform 0.25s, color 0.2s;
+    flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+  }
+  .card.open .card-arrow {
+    transform: rotate(45deg);
+    color: var(--accent);
+  }
+
+  .card-body {
+    display: none;
+    padding: 0 18px 18px;
+    border-top: 1px solid var(--border);
+  }
+  .card.open .card-body { display: block; }
+
+  .card-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #b0b0b0;
+    margin: 14px 0 14px;
+  }
+  .example-block {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 12px 14px;
+  }
+  .example-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .example-text {
+    font-size: 13px;
+    line-height: 1.65;
+    color: #c8c8c8;
+    font-style: italic;
+  }
+
+  /* NO RESULTS */
+  .no-results {
+    text-align: center;
+    padding: 80px 0;
+    color: var(--muted);
+    display: none;
+  }
+  .no-results .nr-icon { font-size: 48px; margin-bottom: 16px; }
+  .no-results p { font-size: 16px; }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 32px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    letter-spacing: 0.08em;
+  }
+
+  /* COUNT display */
+  #visible-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 900px;
+    margin: 12px auto 0;
+  }
+  #visible-count span { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="brand">m3b Athletics — Terim Sözlüğü</div>
+    <div class="stats-row">
+      <div><span id="total-count">0</span> terim</div>
+      <div><span id="cat-count">0</span> kategori</div>
+    </div>
+  </div>
+  <h1>Antrenman Bilimi<br>Sözlüğü</h1>
+  <p class="subtitle">Her antrenman uzmanının bilmesi gereken terimler — Türkçe açıklamalar ve sahadan örneklerle.</p>
+  <div class="controls">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="search" placeholder="Terim ara... (örn. overload, VO2, DOMS)">
+    </div>
+    <div class="filters" id="filters"></div>
+  </div>
+  <div id="visible-count"></div>
+</header>
+
+<main id="main"></main>
+<div class="no-results" id="no-results">
+  <div class="nr-icon">🔍</div>
+  <p>Arama sonucu bulunamadı.</p>
+</div>
+
+<footer>© m3b Athletics · Antrenman Bilimi Sözlüğü</footer>
+
+<script>
+const DATA = [
+  // ══════════════════════════════════════════
+  // 1. YÜKLENİŞ PRENSİPLERİ
+  // ══════════════════════════════════════════
+  {
+    cat: "Yüklenme Prensipleri",
+    en: "Progressive Overload",
+    tr: "Artan Yüklenme",
+    desc: "Vücudu sürekli gelişmeye zorlamak için antrenman yükünü (ağırlık, set, tekrar, hız) zamanla sistematik olarak artırma prensibi. Adaptasyon için temel şarttır.",
+    ex: "Tenis oyuncusu Arda, Pazartesi 3×10 squat'ı 60 kg ile yapıyor. Bir sonraki haftaya 62.5 kg'a çıkıyor. Üç ay içinde 80 kg'a ulaşıyor — bu progressive overload'dur."
+  },
+  {
+    cat: "Yüklenme Prensipleri",
+    en: "Supercompensation",
+    tr: "Üst Telafi / Süperkompanzasyon",
+    desc: "Yorucu bir antrenman sonrası dinlenme döneminde organizmanın sadece eski seviyesine gelmekle kalmayıp, bir üst performans düzeyine çıkma olgusudur. Adaptasyonun temelidir.",
+    ex: "Maç öncesi ağır antrenman yapıldıktan 48 saat sonra oyuncu 'peak' performansına ulaşır. Antrenman zamanlamasının amacı budur."
+  },
+  {
+    cat: "Yüklenme Prensipleri",
+    en: "Principle of Specificity (SAID)",
+    tr: "Özgüllük İlkesi",
+    desc: "Vücut, nasıl bir strese maruz kalıyorsa ona özgü adaptasyon geliştirir. SAID: Specific Adaptations to Imposed Demands. Tenis antrenmanı beyzbol performansı kazandırmaz.",
+    ex: "Sadece ağırlık kaldıran bir oyuncu bacak kuvveti kazanır ama tenis için gereken rotasyonel güç ve koordinasyonu geliştiremez. Antrenman spor hareketini taklit etmeli."
+  },
+  {
+    cat: "Yüklenme Prensipleri",
+    en: "Deload",
+    tr: "Yük Azaltma / Deload Haftası",
+    desc: "Birikim yorgunluğunu (kümülatif yorgunluk) dağıtmak ve süperkompanzasyon yaratmak için yük veya yoğunluğu planlı biçimde düşürdüğünüz hafta veya dönem.",
+    ex: "4 haftalık ağır bloktan sonra 5. haftada hacim %40 düşürülür. Oyuncu 'neden bu kadar güçlü hissediyorum?' diye sorar — cevap: supercompensation."
+  },
+  {
+    cat: "Yüklenme Prensipleri",
+    en: "Overreaching",
+    tr: "Aşırı Erişim",
+    desc: "Kısa süreli aşırı yüklenme; performans geçici düşer ama dinlenmeyle hızla geri döner. Planlanmış (fonksiyonel) veya plansız (fonksiyonel olmayan) olabilir.",
+    ex: "Olimpiyat öncesi 2 haftalık intensif camp sonrası oyuncu yorulmuş görünür. Ardından gelen 1 hafta dinlenme ile rekor kırar. Planlı overreaching budur."
+  },
+  {
+    cat: "Yüklenme Prensipleri",
+    en: "Overtraining Syndrome",
+    tr: "Aşırı Antrenman Sendromu",
+    desc: "Uzun süreli yetersiz toparlanma ile oluşan kronik yorgunluk, performans düşüşü ve psikolojik bozulma hali. Aylar sürebilir. Overreaching'in üzerinde, çok daha ciddi.",
+    ex: "Yaz boyunca dinlenme günü olmadan çalışan oyuncu: uyku bozukluğu, sürekli hastalık, motivasyon kaybı. Toparlanma 3-6 ay sürebilir."
+  },
+  {
+    cat: "Yüklenme Prensipleri",
+    en: "Reversibility (Detraining)",
+    tr: "Geri Dönüşüm / Antrenman Kaybı",
+    desc: "Antrenman bırakıldığında kazanılan adaptasyonların zamanla kaybolması. Aerobik kapasite 2-4 haftada, kas kuvveti 3-5 haftada gerilemeye başlar.",
+    ex: "Dizini zorlayan oyuncu 4 hafta tam istirahat yapıyor. Geri döndüğünde kondisyonunun %15-20 düştüğünü fark ediyor. Bu reversibility etkisidir."
+  },
+  {
+    cat: "Yüklenme Prensipleri",
+    en: "Volume Load",
+    tr: "Antrenman Hacim Yükü",
+    desc: "Toplam antrenman stresini sayısal olarak ölçme yöntemi. Formül: Set × Tekrar × Ağırlık. Haftalık hacmi karşılaştırmak ve planlamak için kullanılır.",
+    ex: "Squat: 4 set × 8 tekrar × 80 kg = 2560 kg hacim yükü. Geçen hafta 2400 kg idi. %6.6 artış → progressive overload uygulandı."
+  },
+
+  // ══════════════════════════════════════════
+  // 2. PERİYODİZASYON
+  // ══════════════════════════════════════════
+  {
+    cat: "Periodizasyon",
+    en: "Periodization",
+    tr: "Periyodizasyon",
+    desc: "Antrenmanı zirve performansa ulaşmak için sistematik dönemlere bölme sanatı ve bilimidir. Makrosiklus → Mezosiklus → Mikrosiklus şeklinde hiyerarşik yapıya sahiptir.",
+    ex: "Tenis sezonu öncesi: 8 hafta güç tabanı (mezosiklus 1), 6 hafta patlama gücü (mezosiklus 2), 4 hafta spesifik kondisyon + taper (mezosiklus 3)."
+  },
+  {
+    cat: "Periodizasyon",
+    en: "Macrocycle",
+    tr: "Makrosiklus",
+    desc: "Periyodizasyonun en büyük zaman birimi. Genellikle bir yıl veya tam bir spor sezonu. Tüm mezosiklusları içine alır.",
+    ex: "Ocak'tan Aralık'a yıllık antrenman planı bir makrosiklustur. Oyuncu bu süreçte kış hazırlığından yaz sezonuna geçiş yapar."
+  },
+  {
+    cat: "Periodizasyon",
+    en: "Mesocycle",
+    tr: "Mezosiklus",
+    desc: "Makrosiklus içindeki orta vadeli dönem. Genellikle 3-6 hafta sürer. Her mezosiklusun net bir hedefi vardır: hipertrofi, kuvvet, güç, toparlanma vb.",
+    ex: "4 haftalık 'hypertrophy block': hacim yüksek, yoğunluk orta. Ardından 4 haftalık 'strength block': hacim düşüyor, yoğunluk artıyor."
+  },
+  {
+    cat: "Periodizasyon",
+    en: "Microcycle",
+    tr: "Mikrosiklus",
+    desc: "Genellikle 1 haftalık antrenman döngüsü. Hangi günlerin ağır, hangilerinin hafif, hangilerinin dinlenme olduğunu belirler.",
+    ex: "Mikrosiklus: Pazartesi ağır squat, Salı hafif tempo koşu, Çarşamba üst gövde güç, Perşembe aktif dinlenme, Cuma patlama antrenmanı, Cumartesi maç."
+  },
+  {
+    cat: "Periodizasyon",
+    en: "Linear Periodization",
+    tr: "Lineer Periyodizasyon",
+    desc: "Hacmi düşürürken yoğunluğu haftalık veya dönemsel olarak doğrusal biçimde artırma modeli. Başlangıç ve orta seviye için etkilidir. Klasik Sovyet modelidir.",
+    ex: "Hafta 1-4: %60 1RM / yüksek hacim → Hafta 5-8: %75 1RM / orta hacim → Hafta 9-12: %90 1RM / düşük hacim → Hafta 13: Deload."
+  },
+  {
+    cat: "Periodizasyon",
+    en: "Undulating Periodization (DUP)",
+    tr: "Dalgalı Periyodizasyon",
+    desc: "Aynı hafta içinde farklı günlerde farklı yoğunluk ve hacim kademelerini kullanan model. Daily (günlük) veya Weekly (haftalık) olabilir. İleri düzey için uygundur.",
+    ex: "Pazartesi: 5×5 (kuvvet), Çarşamba: 4×12 (hipertrofi), Cuma: 3×20 (dayanıklılık). Aynı hafta üç farklı fizyolojik uyaran."
+  },
+  {
+    cat: "Periodizasyon",
+    en: "Taper",
+    tr: "Kademeleme / Taper",
+    desc: "Büyük müsabaka öncesinde toplam antrenman hacmini düşürürken yoğunluğu korumak. Amaç yorgunluğu dağıtıp kazanılan formun ortaya çıkmasını sağlamak.",
+    ex: "Tenis turnuvası öncesi son 2 haftada hacim %40-60 düşürülür, sprint ve patlama çalışmaları korunur. Oyuncu turnuvada 'taze ve güçlü' hisseder."
+  },
+  {
+    cat: "Periodizasyon",
+    en: "Preparatory Phase",
+    tr: "Hazırlık Dönemi",
+    desc: "Sezon öncesi dönem. Genel fiziksel hazırlık (GPP) ve spesifik fiziksel hazırlık (SPP) olmak üzere iki aşamaya bölünür. Temel kondisyon inşa edilir.",
+    ex: "Ocak-Mart arası kış hazırlığı: koşu hacmi artar, ağırlık çalışması başlar, temel hareketler öğretilir. Spesifik tenis çalışması minimum."
+  },
+  {
+    cat: "Periodizasyon",
+    en: "Competition Phase",
+    tr: "Müsabaka Dönemi",
+    desc: "Aktif sezon boyunca forma koruma ve toparlanma yönetimi dönemi. Antrenman yükü düşer, yoğunluk ve spesifiklik artar. Yorgunluk yönetimi kritiktir.",
+    ex: "Nisan-Eylül turnuva sezonu: haftalık 2 kuvvet antrenmanı, yüksek tenis yoğunluğu, maç takvimini merkeze alan toparlanma protokolü."
+  },
+  {
+    cat: "Periodizasyon",
+    en: "Transition Phase",
+    tr: "Geçiş Dönemi / Off-season",
+    desc: "Sezon sonrası aktif dinlenme ve zihinsel yenilenme dönemi. Yapılandırılmış antrenman minimuma iner; hareket kalitesi ve genel sağlık odaklanılır.",
+    ex: "Ekim-Aralık: haftada 2 gün hafif kuvvet, yürüyüş veya yüzme, zihinsel deşarj. Bu dönem 'boşa giden süre' değil, sezonu mümkün kılan köprüdür."
+  },
+
+  // ══════════════════════════════════════════
+  // 3. FİZYOLOJİ & ENERJİ SİSTEMLERİ
+  // ══════════════════════════════════════════
+  {
+    cat: "Fizyoloji & Enerji Sistemleri",
+    en: "ATP-PCr System (Alactic)",
+    tr: "Fosfajen Sistemi / Alaktat Sistem",
+    desc: "En hızlı enerji kaynağı. 0-10 saniye süren maksimal patlama aktiviteleri için kullanılır. Oksijen gerektirmez. ATP ve kreatin fosfat depolarından beslenir.",
+    ex: "Tenis servisindeki patlama, 30 metrelik sprint, smaç hamlesi. Tamamı fosfajen sistemi ile çalışır. 10 saniyeden uzun süremez."
+  },
+  {
+    cat: "Fizyoloji & Enerji Sistemleri",
+    en: "Glycolytic System (Lactic)",
+    tr: "Glikolitik Sistem / Laktat Sistemi",
+    desc: "10-120 saniye yüksek yoğunluklu aktiviteler için enerji kaynağı. Karbonhidratı hızla yakar, yan ürün olarak laktat üretir. Oksijen gerektirir ama yetersizdir.",
+    ex: "30 saniyeyi aşan uzun koşu-toparlanma egzersizleri, voleybol rauntları, yüksek tempolu tenis rallileri bu sistemde çalışır. Yanma hissi ve asidoz bu sistemle ilgilidir."
+  },
+  {
+    cat: "Fizyoloji & Enerji Sistemleri",
+    en: "Oxidative System (Aerobic)",
+    tr: "Oksidatif Sistem / Aerobik Sistem",
+    desc: "2 dakikanın üzerindeki aktiviteler için asıl enerji kaynağı. Yağ ve karbonhidratı oksijen ile verimli şekilde yakar. Toparlanmanın ve uzun mesafe performansının temelidir.",
+    ex: "Antrenman aralarındaki toparlanma, uzun maç koşusu, kondisyon antrenmanı. Tenis oyuncusunun bir setten sonra toparlanabilmesi aerobik kapasiteyle doğru orantılıdır."
+  },
+  {
+    cat: "Fizyoloji & Enerji Sistemleri",
+    en: "VO₂ Max",
+    tr: "Maksimum Oksijen Tüketimi",
+    desc: "Vücudun maksimal yoğunlukta 1 dakikada kullanabildiği en yüksek oksijen miktarı (ml/kg/dak). Aerobik kondisyonun en temel ölçütüdür.",
+    ex: "Elit tenis oyuncusu: ~55-65 ml/kg/dak. Antrenman görmemiş birey: ~35-45 ml/kg/dak. VO₂Max yüksek olan oyuncu uzun maçlarda daha az yorulur."
+  },
+  {
+    cat: "Fizyoloji & Enerji Sistemleri",
+    en: "Lactate Threshold",
+    tr: "Laktat Eşiği",
+    desc: "Egzersiz şiddetinin kanda laktat birikiminin toparlanmayı aşmaya başladığı nokta. Bu noktanın üzerinde yorgunluk hızlanır. Dayanıklılık performansının kritik belirleyicisi.",
+    ex: "Oyuncu orta tempoda koşarken laktat normale yakın. Koşu hızlandığında belirli bir noktada nefes sıkışır, bacaklar ağırlaşır — laktat eşiği aşıldı."
+  },
+  {
+    cat: "Fizyoloji & Enerji Sistemleri",
+    en: "EPOC",
+    tr: "Egzersiz Sonrası Aşırı Oksijen Tüketimi",
+    desc: "Exercise Post-Oxygen Consumption. Yoğun egzersiz sonrasında metabolizmanın normale dönmesi için tüketilen ekstra oksijen. Kalori yakımı egzersizden sonra da devam eder.",
+    ex: "HIIT sonrası 2-3 saat boyunca metabolizma hızlanmış kalır. Bu sayede toplam kalori yakımı sadece antrenman süresine göre değil, EPOC'a göre de hesaplanır."
+  },
+  {
+    cat: "Fizyoloji & Enerji Sistemleri",
+    en: "Heart Rate Zones",
+    tr: "Kalp Atım Hızı Bölgeleri",
+    desc: "Maksimal kalp atım hızının (MKA) yüzdelerine göre belirlenen 5 yoğunluk bölgesi. Hangi bölgede çalışıldığı, hangi enerji sistemi ve adaptasyonun hedeflendiğini belirler.",
+    ex: "Z1 (%50-60): aktif toparlanma | Z2 (%60-70): aerobik taban | Z3 (%70-80): tempo | Z4 (%80-90): eşik | Z5 (%90-100): maksimal. Tenis: Z3-4 dominant."
+  },
+  {
+    cat: "Fizyoloji & Enerji Sistemleri",
+    en: "Cardiac Output",
+    tr: "Kardiyak Debi",
+    desc: "Kalbin 1 dakikada pompaladığı kan miktarı (L/dak). Formül: Atım Hacmi × Kalp Atım Hızı. Aerobik antrenman hem atım hacmini büyütür hem de istirahat nabzını düşürür.",
+    ex: "Elit sporcu istirahat nabzı 45 atım/dak ve büyük atım hacmi ile, antrenman görmemiş bireyle aynı kardiyak debiyi çok daha az çalışarak üretir — bu kardiyak verimlilik."
+  },
+  {
+    cat: "Fizyoloji & Enerji Sistemleri",
+    en: "Muscle Fiber Types",
+    tr: "Kas Lifi Tipleri",
+    desc: "Tip I (yavaş kasılan, aerobik, yorulmazlık) ve Tip II (hızlı kasılan, anaerobik, patlayıcı). Tip IIa: her ikisinin arası. Spor branşı baskın tip kullanımını belirler.",
+    ex: "Maraton koşucusunda Tip I dominant. Gülle atıcısında Tip II dominant. Tenis oyuncusu dengeli ama reaktif hamle için Tip II, uzun maçlar için Tip I kritik."
+  },
+
+  // ══════════════════════════════════════════
+  // 4. KAS & KUVVETİ
+  // ══════════════════════════════════════════
+  {
+    cat: "Kas & Kuvvet",
+    en: "1RM (One Repetition Maximum)",
+    tr: "Tek Tekrar Maksimum",
+    desc: "Bir bireyin tek bir tekrarda kaldırabileceği en yüksek ağırlık. Antrenman yoğunluğu genellikle 1RM'nin yüzdesi olarak ifade edilir. Test veya formülle hesaplanır.",
+    ex: "Squat 1RM: 120 kg. %80'de çalışıyor → 96 kg ile kuvvet bloku. %60'da çalışıyor → 72 kg ile hipertrofi bloku. 1RM her şeyin referansıdır."
+  },
+  {
+    cat: "Kas & Kuvvet",
+    en: "Hypertrophy",
+    tr: "Hipertrofi / Kas Büyümesi",
+    desc: "Kas liflerinin hacimsel büyümesi. Miyofibrilar (kuvvet odaklı, 1-5 tekrar) veya sarkoplazmatik (yorgunluk direnci odaklı, 8-15 tekrar) olabilir.",
+    ex: "Oyuncuya 4×10-12 bacak pres programı uygulandı. 8 haftada uyluk çevresi 2 cm artı — miyofibrilar ve sarkoplazmatik hipertrofi birlikte gelişti."
+  },
+  {
+    cat: "Kas & Kuvvet",
+    en: "Muscular Strength",
+    tr: "Kas Kuvveti",
+    desc: "Kasın tek bir çabayla üretebileceği maksimum kuvvet. Sinir-kas koordinasyonu ve lif büyüklüğüyle ilgilidir. Düşük tekrar, yüksek ağırlıkla gelişir.",
+    ex: "Oyuncu 3×5 deadlift ile 12 haftada 60 kg'dan 100 kg'a çıktı. Daha fazla kas değil, kas aktivasyonu ve koordinasyonu gelişti — bu nöral kuvvet kazanımıdır."
+  },
+  {
+    cat: "Kas & Kuvvet",
+    en: "Muscular Endurance",
+    tr: "Kas Dayanıklılığı",
+    desc: "Kasın tekrarlayan yüklenmelere ya da uzun süreli statik gerilmelere karşı koyabilme kapasitesi. Yüksek tekrar, düşük ağırlıkla gelişir.",
+    ex: "Tenis oyuncusu 3 setlik maçta forehand vurabilmek için kas dayanıklılığı gerektirir. Sadece güçlü değil, uzun süre tekrarlayabilmeli."
+  },
+  {
+    cat: "Kas & Kuvvet",
+    en: "Rate of Force Development (RFD)",
+    tr: "Kuvvet Gelişim Hızı",
+    desc: "Kasın ne kadar hızlı kuvvet ürettiğinin ölçüsü. Spordaki 'patlayıcılık' bu kavramla açıklanır. Yüksek hızlı hareketler (pliometri, sprint) ile gelişir.",
+    ex: "İki oyuncunun squat 1RM'si eşit ama biri serviste diğerinden daha güçlü. Çünkü servis süresi 50ms: daha yüksek RFD'ye sahip olan kazanır."
+  },
+  {
+    cat: "Kas & Kuvvet",
+    en: "Relative Strength",
+    tr: "Göreli Kuvvet",
+    desc: "Kuvvetin vücut ağırlığına oranı. Sporda mutlak kuvvetten daha önemlidir; çünkü oyuncuların kendi bedenini hızlandırmaları gerekir.",
+    ex: "95 kg'da 100 kg squat: rölatif kuvvet 1.05. 70 kg'da 90 kg squat: rölatif kuvvet 1.28 → ikinci oyuncu daha güçlü-hafif, koşu ve çeviklikte avantajlı."
+  },
+  {
+    cat: "Kas & Kuvvet",
+    en: "DOMS",
+    tr: "Gecikmiş Başlangıçlı Kas Ağrısı",
+    desc: "Delayed Onset Muscle Soreness. Alışılmamış egzersizden 24-72 saat sonra hissedilen kas ağrısı. Mikro hasar ve inflamatuar yanıttan kaynaklanır. Kas hasarı = ağrı değildir.",
+    ex: "Yeni başlayan oyuncu Pazartesi bacak antrenmanı yapıyor. Çarşamba merdiven inişi zor oluyor — bu DOMS. Birkaç tekrarda vücut adapte olur ve azalır."
+  },
+  {
+    cat: "Kas & Kuvvet",
+    en: "Neuromuscular Efficiency",
+    tr: "Nöromusküler Verimlilik",
+    desc: "Sinir sisteminin kasları ne kadar etkili aktive ettiğinin ölçüsü. Antrenmanın ilk 4-8 haftasındaki kuvvet artışı kas büyümesinden değil, bu verimliliğin artmasından gelir.",
+    ex: "Yeni başlayan oyuncu ilk 6 haftada %30 daha fazla kaldırıyor ama kas boyutunda gözle görülür değişim yok. Bu tamamen nöromusküler gelişimdir."
+  },
+  {
+    cat: "Kas & Kuvvet",
+    en: "Eccentric Training",
+    tr: "Eksantrik Antrenman",
+    desc: "Kasın uzayarak kuvvet ürettiği faz. Konsantrik (kısalma) fazdan daha fazla kas hasarı ve adaptasyon üretir. Tendon ve ligament sağlığı için kritik öneme sahiptir.",
+    ex: "Nordic hamstring curl: dizleri bükerek yavaş öne eğilmek. Hamstring yaralanmalarını önlemede en kanıtlı yöntemlerden biri. ACL rehab'ın temelidir."
+  },
+
+  // ══════════════════════════════════════════
+  // 5. HIZ & ÇEVİKLİK
+  // ══════════════════════════════════════════
+  {
+    cat: "Hız & Çeviklik",
+    en: "Acceleration",
+    tr: "İvmelenme",
+    desc: "Duraksama veya düşük hızdan maksimal hıza geçme kapasitesi. İlk 0-20 metrede dominant. Kuvvet-güç oranıyla doğrudan ilişkilidir.",
+    ex: "Tenis servisinde topu vurduktan sonra ağa koşmak veya baz çizgisinden ileri çıkmak: bu hamleler ivmelenme kalitesini yansıtır."
+  },
+  {
+    cat: "Hız & Çeviklik",
+    en: "Maximum Velocity",
+    tr: "Maksimal Hız",
+    desc: "Bir sporcunun ulaşabileceği en yüksek koşu hızı. Genellikle 30-60 metre arasında gerçekleşir. Adım uzunluğu × adım frekansıyla belirlenir.",
+    ex: "Tenis kortunda nadiren kullanılsa da, bazı sürüş uzunluğunda maksimal hız etkisini görürüz. Futbol veya atletizm için daha kritik."
+  },
+  {
+    cat: "Hız & Çeviklik",
+    en: "Agility",
+    tr: "Çeviklik",
+    desc: "Algı ve karar vermeyi içeren, yön değiştirme hızı ve kapasitesi. Sadece fiziksel değil bilişsel bir özellik de içerir. COD + Algı/Karar = Çeviklik.",
+    ex: "Rakibin vuruş yönünü okuyup doğru hamle yapma tenis çevikliğinin özüdür. T-test sadece COD ölçer; gerçek çeviklik buna zihinsel süreçleri de ekler."
+  },
+  {
+    cat: "Hız & Çeviklik",
+    en: "Change of Direction Speed (COD)",
+    tr: "Yön Değiştirme Hızı",
+    desc: "Algı ve karar verme olmaksızın önceden belirlenmiş bir yönde hızlı yön değiştirme kapasitesi. Çevikliğin fiziksel alt bileşenidir.",
+    ex: "5-10-5 shuttle, T-test veya 5m × 5m kare antrenmanları COD testleri ve egzersizleridir. Kendi başına yeterli değildir; çeviklikle birleştirilmeli."
+  },
+  {
+    cat: "Hız & Çeviklik",
+    en: "Reactive Strength",
+    tr: "Reaktif Kuvvet",
+    desc: "Hızlı bir esnetme-kısalma döngüsü (SSC) kullanarak kas-tendon birimlerinin elastik enerjiyi depolayıp serbest bırakma kapasitesi. Pliometrinin fizyolojik temelidir.",
+    ex: "Tenis oyuncusunun koşu sırasında ayağı yere değdiğinde enerjiyi yayga gibi emmesi ve geri fırlatması. Springy-koşucu bu mekanizmayı en iyi kullananıdır."
+  },
+  {
+    cat: "Hız & Çeviklik",
+    en: "Plyometrics",
+    tr: "Pliometri",
+    desc: "Kasın hızlı gerilme-kısalma döngüsünü (SSC) kullanarak maksimal güç üretimini geliştiren egzersizler. Sıçrama, hoplar ve patlayıcı hareketleri kapsar.",
+    ex: "Box jump, depth jump, single-leg hop, medicine ball slam. ACL geçirmiş oyuncuya 12. haftada tek bacak sıçrama + pliometri başlanır — zemin reaktivitesi geri kazanılır."
+  },
+
+  // ══════════════════════════════════════════
+  // 6. MOTOR ÖĞRENME
+  // ══════════════════════════════════════════
+  {
+    cat: "Motor Öğrenme",
+    en: "Motor Learning",
+    tr: "Motor Öğrenme",
+    desc: "Pratik ve deneyim yoluyla kalıcı hareket becerisi değişikliklerinin gerçekleştiği süreç. Geçici performans artışından farklıdır; uzun süreli adaptasyonu ifade eder.",
+    ex: "Oyuncu ilk hafta topspin forehand yapmakta zorlanıyor. 3 ay sonra düşünmeden yapıyor. Bu motor öğrenmedir — performans değil, öğrenme kalıcılaşmıştır."
+  },
+  {
+    cat: "Motor Öğrenme",
+    en: "Implicit Learning",
+    tr: "Örtük Öğrenme",
+    desc: "Bilinçli farkındalık olmaksızın gerçekleşen hareket öğrenmesi. Baskı altında daha dayanıklıdır çünkü beyin 'analiz-felci'nden korunur.",
+    ex: "Oyuncuya 'topun rotasyonunu takip et' denilir, teknik değil. Zamanla teknik otomatik gelişir. Performans anksiyetesi altında bu yöntem daha başarılıdır."
+  },
+  {
+    cat: "Motor Öğrenme",
+    en: "Explicit Learning",
+    tr: "Açık Öğrenme",
+    desc: "Bilinçli kural ve talimatlarla gerçekleşen öğrenme. Başlangıç evresinde hızlı ilerleme sağlar ama baskı altında yıkılabilir (Choking under pressure).",
+    ex: "'Diz öne dizüstü hizasından çıkmasın, ağırlık topukta kalsın, gövde dik.' Bu açık talimatlar squat öğretiminde kullanılır. Antrenman başında etkili ama maç sırasında tehlikeli."
+  },
+  {
+    cat: "Motor Öğrenme",
+    en: "Contextual Interference",
+    tr: "Bağlamsal Girişim",
+    desc: "Farklı becerilerin karma sırada pratik edilmesinin öğrenmeyi zorlaştırmasına rağmen uzun vadede hatırlama ve transferi artırması paradoksu. Blok pratik vs. rastgele pratik.",
+    ex: "Blok pratik: 30 forehand, 30 backhand, 30 servis → daha kolay, daha az öğrenme. Rastgele: random sıra → zor ama kalıcı öğrenme. Turnuva için rastgele daha etkili."
+  },
+  {
+    cat: "Motor Öğrenme",
+    en: "Feedback (KR / KP)",
+    tr: "Geri Bildirim",
+    desc: "KR (Knowledge of Results): sonuç bilgisi (gol girdi mi?). KP (Knowledge of Performance): hareket kalitesi bilgisi (vuruş mekanizması). Her ikisi öğrenme için kritiktir.",
+    ex: "Antrenör: 'Top ağa gitti (KR) çünkü bilek dönüşünü erken yaptın (KP).' İkisini birlikte vermek en hızlı düzeltmeyi sağlar."
+  },
+  {
+    cat: "Motor Öğrenme",
+    en: "Transfer of Learning",
+    tr: "Öğrenme Transferi",
+    desc: "Bir becerinin öğrenilmesinin başka bir becerinin gelişmesine olumlu (pozitif) veya olumsuz (negatif) etkisi. Benzer hareket örüntüleri pozitif transfer üretir.",
+    ex: "Badminton geçmişi olan oyuncular teniste raket kontrolünü daha hızlı öğrenir — pozitif transfer. Ama servis mekanizması farklı olduğu için negatif transfer de olabilir."
+  },
+  {
+    cat: "Motor Öğrenme",
+    en: "Cyclic / Acyclic / Serial Skills",
+    tr: "Döngüsel / Döngüsel Olmayan / Seri Beceriler",
+    desc: "Döngüsel: tekrarlayan hareket örüntüsü (koşu, yüzme). Döngüsel olmayan: ayrı başlangıç-bitiş (servis, atış). Seri: birkaç ayrı hareket birleşimi (sıçra-vur-kaç).",
+    ex: "Tenis koşusu: döngüsel. Servis: döngüsel olmayan. Servis + ağa sprint + volé: seri beceri. Antrenman planı bu ayrımı dikkate almalı."
+  },
+
+  // ══════════════════════════════════════════
+  // 7. TOPARLANMA & YÜK YÖNETİMİ
+  // ══════════════════════════════════════════
+  {
+    cat: "Toparlanma & Yük Yönetimi",
+    en: "Recovery",
+    tr: "Toparlanma",
+    desc: "Antrenman stresi sonrasında organizmanın homeostaz'a (denge) geri dönme süreci. Pasif (dinlenme) veya aktif (hafif egzersiz, mobilite) olabilir. Adaptasyonun gerçekleştiği yer.",
+    ex: "Antrenmanın kendisi uyaran verir; toparlanma ise adaptasyonu inşa eder. Yeterli uyku, beslenme ve yük yönetimi olmadan antrenman birikim yaratmaz."
+  },
+  {
+    cat: "Toparlanma & Yük Yönetimi",
+    en: "Training Load",
+    tr: "Antrenman Yükü",
+    desc: "Antrenmanın toplam stresi. İç yük (kalp atımı, RPE, laktat) + Dış yük (mesafe, ağırlık, hız) olarak ikiye ayrılır. İkisini birlikte izlemek kritiktir.",
+    ex: "Aynı koşuyu yapan iki oyuncu: biri 140 nabız, biri 160 nabız ile bitirir. Dış yük eşit ama iç yük farklı → ikincisinin antrenman stresi daha yüksek."
+  },
+  {
+    cat: "Toparlanma & Yük Yönetimi",
+    en: "RPE (Rate of Perceived Exertion)",
+    tr: "Algılanan Efor Değerlendirmesi",
+    desc: "Egzersizin ne kadar zor hissettirdiğini 0-10 (veya 6-20 Borg) ölçeğinde nicelendirme. Ucuz, anlık ve iç yük ölçümünde geçerli bir yöntemdir.",
+    ex: "Oyuncuya antrenman sonrası sorulur: '1-10 arası kaç?' → '8'. Hedef 7 ise yük çok yüksek. RPE'nin düşmesi kondisyon gelişiminin en basit göstergesi."
+  },
+  {
+    cat: "Toparlanma & Yük Yönetimi",
+    en: "Acute:Chronic Workload Ratio (ACWR)",
+    tr: "Akut:Kronik İş Yükü Oranı",
+    desc: "Son 7 günlük yükün (akut) son 28 günlük ortalama yüke (kronik) oranı. Yaralanma riskini tahmin etmek için kullanılır. Güvenli bölge: 0.8-1.3.",
+    ex: "Oyuncu 3 hafta düşük yük → birdenbire çift antrenman haftası. ACWR: 2.1 → yüksek yaralanma riski. 'Fitness-Fatigue' dengesizliği budur."
+  },
+  {
+    cat: "Toparlanma & Yük Yönetimi",
+    en: "Heart Rate Variability (HRV)",
+    tr: "Kalp Atım Hızı Değişkenliği",
+    desc: "Ardışık kalp atımları arasındaki zaman farklılığı. Yüksek HRV: iyi toparlanma, düşük sempatik baskı. Düşük HRV: stres, yetersiz uyku, yorgunluk. En pratik biyomarkır.",
+    ex: "Oyuncunun HRV sabah ölçümü her gün 65-70 ms. Bir gün 48 ms görürse: yoğun antrenman yerine aktif toparlanma planlanır. Kişiselleştirilmiş yük yönetimi."
+  },
+  {
+    cat: "Toparlanma & Yük Yönetimi",
+    en: "Sleep Architecture",
+    tr: "Uyku Mimarisi",
+    desc: "REM ve non-REM uyku evrelerinin döngüsü. Büyüme hormonu non-REM derin uykuda salgılanır; motor öğrenme pekişmesi REM uykusunda gerçekleşir. Sporcu için kalite kadar süre önemlidir.",
+    ex: "Ağır antrenman sonrası 6 saat uyuyan oyuncu ile 9 saat uyuyan oyuncu karşılaştırıldığında: ikincisi daha fazla GH salgılar, daha az DOMS, daha iyi hareket kalitesi gösterir."
+  },
+  {
+    cat: "Toparlanma & Yük Yönetimi",
+    en: "Active Recovery",
+    tr: "Aktif Toparlanma",
+    desc: "Dinlenme günlerinde düşük yoğunluklu aktivite (yürüyüş, hafif yüzme, mobilite). Kan dolaşımını artırarak metabolik atıkların uzaklaşmasını hızlandırır.",
+    ex: "Ağır Pazartesi antrenmandan sonra Salı: 20 dakika hafif yürüyüş + köpük rulo. Bunu yapan oyuncu Çarşamba antrenmana daha taze girer."
+  },
+
+  // ══════════════════════════════════════════
+  // 8. BESLENME & DESTEK
+  // ══════════════════════════════════════════
+  {
+    cat: "Beslenme & Destek",
+    en: "Energy Availability",
+    tr: "Enerji Kullanılabilirliği",
+    desc: "Besinsel enerji alımından egzersizin harcadığı enerji çıkarıldıktan sonra vücut işlevleri için kalan enerji miktarı. <30 kcal/kg yağsız kütle: düşük enerji kullanılabilirliği.",
+    ex: "Oyuncu diyet yapıyor + yoğun antrenman yapıyor. Yorgunluk artıyor, saçlar dökülüyor, hastalıklar çoğalıyor. Sebep: enerji kullanılabilirliği yetersiz."
+  },
+  {
+    cat: "Beslenme & Destek",
+    en: "Glycogen",
+    tr: "Glikojen",
+    desc: "Karbonhidratların kaslarda ve karaciğerde depolanma formu. Yüksek yoğunluklu spor için birincil yakıt. Tükenirse 'duvara çarpmak' (bonk) olur.",
+    ex: "3 setlik uzun maçta oyuncunun bacakları son sette ağırlaşıyor — glikojen depoları azalmış. Maç öncesi karbonhidrat yüklemesi (carb-loading) buna karşı kullanılır."
+  },
+  {
+    cat: "Beslenme & Destek",
+    en: "Protein Synthesis",
+    tr: "Protein Sentezi",
+    desc: "Egzersiz sonrası kas dokusunun onarım ve büyümesi için aminoasitlerin kullanılması. Antrenman + protein = hipertrofi. Antrenman penceresi 24-48 saat açık kalır.",
+    ex: "Antrenman sonrası 30 dakika içinde 20-40g protein alımı kas protein sentezini maksimize eder. Whey protein bu pencerede en hızlı absorbe edilendir."
+  },
+  {
+    cat: "Beslenme & Destek",
+    en: "Creatine Phosphate",
+    tr: "Kreatin Fosfat",
+    desc: "ATP-PCr sisteminin enerji deposu. Takviye olarak alınan kreatin bu depoyu doldurur, kısa süreli maksimal güç çıktısını artırır. En kanıtlı spor takviyesi.",
+    ex: "Oyuncu 5g/gün kreatin alıyor. 4. haftada 5RM squat ağırlığı %5-8 artıyor. Uzun maçlarda sprint kalitesi de korunuyor — kreatin etkisi."
+  },
+  {
+    cat: "Beslenme & Destek",
+    en: "Hydration",
+    tr: "Hidratasyon",
+    desc: "Vücudun sıvı dengesi. %2 vücut ağırlığı kaybı performansı belirgin düşürür; %4 ciddi bozulma; %6+ tehlikeli. İdrar rengi en basit takip yöntemidir.",
+    ex: "Sıcakta oynayan oyuncu saatte 1.5 litre terliyebilir. Yeterli su almadan oynayan oyuncuda konsantrasyon, kas koordinasyonu ve aerobik kapasite birlikte düşer."
+  },
+  {
+    cat: "Beslenme & Destek",
+    en: "Carbohydrate Periodization",
+    tr: "Karbonhidrat Periyodizasyonu",
+    desc: "Antrenman yüküne göre karbonhidrat alımını değiştirme stratejisi. Yüksek yoğunluklu günlerde yüksek karbonhidrat, düşük yoğunluklu veya dinlenme günlerinde düşük.",
+    ex: "Pazartesi maç günü: 8g/kg karbonhidrat. Salı dinlenme günü: 3g/kg karbonhidrat. Bu strateji hem performans hem de vücut kompozisyonunu optimize eder."
+  },
+
+  // ══════════════════════════════════════════
+  // 9. YARALANMA ÖNLEMİ
+  // ══════════════════════════════════════════
+  {
+    cat: "Yaralanma Önlemi & Rehabilitasyon",
+    en: "Injury Risk Factors",
+    tr: "Yaralanma Risk Faktörleri",
+    desc: "Değiştirilebilir (kas dengesizliği, yük hataları, teknik kusur, yetersiz uyku) ve değiştirilemez (yaş, cinsiyet, geçmiş yaralanma) olarak ikiye ayrılır. Önleme değiştirilebilire odaklanır.",
+    ex: "Geçirilmiş hamstring yaralanması gelecekteki yaralanma riskini 2-3 kat artırır — değiştirilemez faktör. Ama eksantrik güçlendirme ile bu risk düşürülebilir."
+  },
+  {
+    cat: "Yaralanma Önlemi & Rehabilitasyon",
+    en: "Muscle Imbalance",
+    tr: "Kas Dengesizliği",
+    desc: "Antagonist kas grupları arasındaki kuvvet veya esneklik oranı bozukluğu. Yaralanmalar için zemin hazırlar. Özellikle quadricep:hamstring ve internal:external rotasyon oranları kritik.",
+    ex: "Quad/hamstring oranı <0.6 olan oyuncularda ACL riski artar. Tenis omzunda iç/dış rotasyon dengesizliği impingement'a davet çıkarır. Asimetri testlerle belirlenmelidir."
+  },
+  {
+    cat: "Yaralanma Önlemi & Rehabilitasyon",
+    en: "Return to Sport (RTS)",
+    tr: "Spora Geri Dönüş",
+    desc: "Yaralanma sonrası güvenli spora dönüşü belirleyen aşamalı protokol. Ağrı kontrolü → kuvvet → nöromusküler kontrol → spor spesifik yük → tam dönüş.",
+    ex: "Grade I ACL yaralanması: 4 hafta ağrı yönetimi, 8 hafta kuvvet inşası, 4 hafta çeviklik, 2 hafta antrenman dönüşü, ardından tam maç dönüşü. Acele = re-yaralanma."
+  },
+  {
+    cat: "Yaralanma Önlemi & Rehabilitasyon",
+    en: "Proprioception",
+    tr: "Propriyosepsiyon / Eklem Pozisyon Hissi",
+    desc: "Eklemlerin uzayda konumlarını hissetme kapasitesi. Yaralanma sonrası bozulur. Denge, koordinasyon ve yaralanma önleme çalışmalarının fizyolojik temelidir.",
+    ex: "Burkulma sonrası ayak bileği sallanıyor. Sebebi: eklem reseptörleri hasar gördü. Denge tahtası ve tek bacak egzersizleri propriyosepsiyonu yeniden eğitir."
+  },
+  {
+    cat: "Yaralanma Önlemi & Rehabilitasyon",
+    en: "Tendinopathy",
+    tr: "Tendinopati",
+    desc: "Tendon dejenerasyonu ve ağrısı. Tendinit (inflamasyon) yerine kullanılan daha doğru terim. Aşırı kullanım yaralanmasıdır. Heavy Slow Resistance (HSR) altın standart tedavidir.",
+    ex: "Ön bacak ağrısıyla gelen oyuncuda patellar tendinopati. Çözüm: istirahat değil, dozlu yüklenme. Ağır yavaş bacak pres + squat programı 12 haftada yüksek iyileşme sağlar."
+  },
+  {
+    cat: "Yaralanma Önlemi & Rehabilitasyon",
+    en: "Isometric Exercise",
+    tr: "İzometrik Egzersiz",
+    desc: "Eklem hareketi olmaksızın kasın sabit uzunlukta kuvvet ürettiği egzersiz türü. Tendinopatide ağrı yönetimi ve yükleme kapasitesi için ilk tercih.",
+    ex: "Patellar tendinopati: duvar oturması 5×45 saniye. İzometrik çalışma tendon üzerinde mekanik stimülasyon yaratır ve kortikospinal ağrı inhibisyonu sağlar."
+  },
+
+  // ══════════════════════════════════════════
+  // 10. SPOR PSİKOLOJİSİ
+  // ══════════════════════════════════════════
+  {
+    cat: "Spor Psikolojisi",
+    en: "Self-Efficacy",
+    tr: "Öz Yeterlilik",
+    desc: "Kişinin belirli bir görevi başarabileceğine olan inancı. Performansla güçlü ilişkisi vardır. Mastery (ustalık deneyimleri), sosyal model, sözel ikna ve fizyolojik uyarılmayla artar.",
+    ex: "Oyuncuya zor ama ulaşılabilir hedefler verilir ve başarılı olduğunda fark ettirilir. 'Geçen hafta bu koordinasyon imkansız görünüyordu, şimdi yapıyorsun.' — öz yeterlilik inşası."
+  },
+  {
+    cat: "Spor Psikolojisi",
+    en: "Arousal Regulation",
+    tr: "Uyarılma Düzenleme",
+    desc: "Optimal performans için uyarılma seviyesinin (ne çok sakin, ne çok heyecanlı) ayarlanması. Ters-U modeli: orta uyarılma = zirve performans. Tekniğe göre optimal bölge değişir.",
+    ex: "Servis atmadan önce nefes çalışması (düşürür) veya müzik ve ritüeller (artırır). Sinirli oyuncu: derin nefes. Durgun oyuncu: hızlı müzik ve fiziksel aktivasyon."
+  },
+  {
+    cat: "Spor Psikolojisi",
+    en: "Flow State",
+    tr: "Akış Hali",
+    desc: "Csikszentmihalyi'nin tanımladığı tam konsantrasyon, zaman algısı kaybı ve eforun zahmetssiz hissedildiği optimal deneyim hali. Hedef netliği ve beceri-zorluk dengesi ile tetiklenir.",
+    ex: "Antrenman sırasında oyuncu 'şuurunu kaybediyor', hareketler otomatik geliyor, bir anda 2 saat geçmiş. Bu akış halidir — en verimli öğrenme ve performans ortamı."
+  },
+  {
+    cat: "Spor Psikolojisi",
+    en: "Goal Setting",
+    tr: "Hedef Belirleme",
+    desc: "SMART (Spesifik, Ölçülebilir, Ulaşılabilir, İlgili, Zamanlı) ve süreç/performans/sonuç hedefleri şeklinde sınıflandırılır. Motivasyon ve yönlendirme için kritik.",
+    ex: "Sonuç hedefi: 'Turnuvayı kazanmak.' Performans hedefi: 'İlk servisi %65 isabetle atmak.' Süreç hedefi: 'Her serviste topa bakışı sonuna kadar korumak.' Antrenman süreç hedefiyle çalışır."
+  },
+  {
+    cat: "Spor Psikolojisi",
+    en: "Intrinsic / Extrinsic Motivation",
+    tr: "İçsel / Dışsal Motivasyon",
+    desc: "İçsel: faaliyetin kendisinden alınan zevk. Dışsal: ödül, para, statü. Uzun vadeli gelişim için içsel motivasyon daha sürdürülebilir ve psikolojik refah için daha sağlıklı.",
+    ex: "Sadece 'ebeveynler gururlansın diye' oynayan genç oyuncu kriz dönemlerinde bırakır. Oyun için seven oyuncu zor dönemlerde devam eder. Antrenör içsel motivasyonu beslemeli."
+  },
+  {
+    cat: "Spor Psikolojisi",
+    en: "Mental Imagery",
+    tr: "Zihinsel İmgeleme",
+    desc: "Hareket ve performansı zihinde canlı olarak canlandırma tekniği. Nöral yolları gerçek pratik gibi aktive eder. Teknik öğrenme, özgüven ve stres yönetimi için kullanılır.",
+    ex: "Oyuncu sakatlanıp 3 hafta kord dışında. Her gün 15 dakika forehand topspin zihinsel prova yapıyor. Dönüşte teknik gerileme beklenenden az — zihinsel imgeleme çalışmış."
+  },
+  {
+    cat: "Spor Psikolojisi",
+    en: "Choking Under Pressure",
+    tr: "Baskı Altında Çökme",
+    desc: "Yüksek basınçlı durumlarda otomatikleşmiş becerilerin açık (bilinçli) işlemeye dönmesiyle bozulması. Paralysis by Analysis olarak da bilinir.",
+    ex: "Kritik maç topunda forehand atamayan oyuncu: 'bilek, omuz, dizi, ritim...' Aşırı düşünme. Çözüm: rutin, nefes ve süreç odağı. Örtük öğrenme baskıya karşı koruyucu."
+  },
+
+  // ══════════════════════════════════════════
+  // 11. ÖLÇÜM & DEĞERLENDİRME
+  // ══════════════════════════════════════════
+  {
+    cat: "Ölçüm & Değerlendirme",
+    en: "Validity",
+    tr: "Geçerlilik",
+    desc: "Bir testin gerçekten ölçmek istediği şeyi ölçüp ölçmediği. Yüz geçerliliği, içerik geçerliliği, yapı geçerliliği alt türleri var. İyi test = geçerli + güvenilir.",
+    ex: "Basketbol kondisyonunu ölçmek için yüzme testi kullanmak: geçersiz. T-test tenis çevikliğini ölçüyor mu, tüm çevikliği mi? Spor spesifik protokol daha geçerli."
+  },
+  {
+    cat: "Ölçüm & Değerlendirme",
+    en: "Reliability",
+    tr: "Güvenilirlik",
+    desc: "Aynı koşullarda tekrarlanan ölçümlerin ne ölçüde tutarlı sonuç verdiği. Hem test-retest (gün içi) hem de ölçümler arası tutarlılık önemli.",
+    ex: "Dikey sıçrama testi her uygulandığında aynı sonucu veriyorsa güvenilirdir. Oyuncu 40 cm atlıyorsa 40 cm görmeli. Ölçüm protokolü standartlaştırılmazsa güvenilirlik düşer."
+  },
+  {
+    cat: "Ölçüm & Değerlendirme",
+    en: "Functional Movement Screen (FMS)",
+    tr: "Fonksiyonel Hareket Tarama",
+    desc: "7 temel hareket örüntüsünü 0-3 arası puanlayan tarama sistemi. Asimetriler ve hareket kalitesi bozukluklarını belirler. Yaralanma risk profili oluşturur.",
+    ex: "Oyuncu FMS'de deep squat puanı 1, shoulder mobility asimetrisi var. Bu bulgu kuvvet programı tasarımına ve önceliklendirmeye doğrudan yansır."
+  },
+  {
+    cat: "Ölçüm & Değerlendirme",
+    en: "Yo-Yo Intermittent Recovery Test",
+    tr: "Yo-Yo Aralıklı Toparlanma Testi",
+    desc: "Tekrarlayan yüksek yoğunluklu koşu yeteneğini ve aerobik-anaerobik kapasiteyi ölçen saha testi. Tenis, futbol, basketbol için yüksek geçerliliğe sahip.",
+    ex: "Tenis oyuncusu Yo-Yo test seviye 2: 18.6 → düşük. Hedef >20. Aerobik antrenman bloğu planlanır ve 8 haftada yeniden test edilir."
+  },
+  {
+    cat: "Ölçüm & Değerlendirme",
+    en: "Countermovement Jump (CMJ)",
+    tr: "Karşı Hareket Sıçraması",
+    desc: "Elastik enerji kullanımını ve reaktif kuvveti ölçen, kısa ön çömelme (countermovement) içeren dikey sıçrama testi. Nöromusküler yorgunluğun da takibinde kullanılır.",
+    ex: "Oyuncu normal CMJ: 40 cm. Ağır antrenman sezonunda: 35 cm → nöromusküler yorgunluk yüksek. Deload planlanır. Toparlanma sonrası: 42 cm → supercompensation görülür."
+  },
+  {
+    cat: "Ölçüm & Değerlendirme",
+    en: "GPS / Wearable Technology",
+    tr: "GPS ve Giyilebilir Teknoloji",
+    desc: "Dış yükü (mesafe, hız, hızlanma, yüklenme bölgesi) gerçek zamanlı izleyen cihazlar. Akut yük yönetimi ve ACWR hesaplamalarında altın standarttır.",
+    ex: "Futbol oyuncusu maçta 11 km, 6 sprint, peak hız 31 km/h. Bu verilere göre maç sonrası toparlanma planlanır ve bir sonraki haftanın hacmi ayarlanır."
+  },
+
+  // ══════════════════════════════════════════
+  // 12. GENEL KAVRAMLAR
+  // ══════════════════════════════════════════
+  {
+    cat: "Genel Kavramlar",
+    en: "Adaptation",
+    tr: "Adaptasyon",
+    desc: "Organizmanın tekrarlayan strese verdiği kalıcı fizyolojik, biyokimyasal veya nöral değişim. Antrenmanın temel amacı kontrollü adaptasyon oluşturmaktır.",
+    ex: "İlk hafta 5 km koşmak çok zordu. 3 ayda aynı mesafeyi daha düşük nabız ile tamamlamak: kardiyovasküler ve musküler adaptasyon birlikte gerçekleşti."
+  },
+  {
+    cat: "Genel Kavramlar",
+    en: "Homeostasis",
+    tr: "Homeostaz / İç Denge",
+    desc: "Organizmanın iç ortamını sabit tutma eğilimi. Egzersiz bu dengeyi bozar (homeostatic disruption). Toparlanma dengeyi yeniden kurar — ama üst seviyede.",
+    ex: "Antrenman 'zorbalayan'. Vücut 'bunu bir daha yaşamamak için daha güçlü hazırlanıyorum' diyor. Homeostaz bozulması → adaptasyon → yeni homeostaz — süreç budur."
+  },
+  {
+    cat: "Genel Kavramlar",
+    en: "General Physical Preparedness (GPP)",
+    tr: "Genel Fiziksel Hazırlık",
+    desc: "Temel fitness bileşenlerinin (kuvvet, dayanıklılık, esneklik, çeviklik, koordinasyon) genel gelişimi. Spor spesifik çalışmaya zemin hazırlar.",
+    ex: "Sezon öncesi ilk 6 haftada: squat, deadlift, tempo koşu, mobilite, çeşitli atletizm çalışmaları. Hiçbir şey tenis değil — ama tüm bu çalışmalar teniste görünür."
+  },
+  {
+    cat: "Genel Kavramlar",
+    en: "Specific Physical Preparedness (SPP)",
+    tr: "Spesifik Fiziksel Hazırlık",
+    desc: "Seçilen spor branşının özel hareket örüntülerine benzer egzersizlerle geliştirilen spesifik kondisyon. GPP'nin üzerine inşa edilir.",
+    ex: "Tenis için SPP: rotasyonel güç, lateral sprint + tenis adımı, raket hız antrenmanları, servis benzeşik omuz güçlendirme. Spor hareketini kopyalayan çalışmalar."
+  },
+  {
+    cat: "Genel Kavramlar",
+    en: "Warm-up",
+    tr: "Isınma",
+    desc: "Antrenman veya müsabaka öncesinde vücut ısısını, kan akışını ve nöromusküler hazırlığı artıran protokol. Statik germe ısınmada değil, sonrasında yapılmalı.",
+    ex: "m3b ısınma protokolü: 5 dk jogging → eklem rotasyonları → dinamik germe (leg swing, hip circle) → aktivasyon (glute bridge, band abduction) → koşu driblları → 5 dk yavaş raket vuruşu."
+  },
+  {
+    cat: "Genel Kavramlar",
+    en: "Cool-down",
+    tr: "Soğuma",
+    desc: "Antrenman sonrası nabzı ve metabolizmayı kademeli olarak düşüren aktiviteler. Esneklik çalışması için en uygun zaman. Toparlanmayı hızlandırır.",
+    ex: "Antrenman sonu: 5 dk yavaş yürüyüş → hip flexor germe 2×30 sn her bacak → hamstring 2×30 sn → quadriceps → omuz açıcı. Toplam 15 dakika yatırım, büyük toparlanma kazancı."
+  },
+  {
+    cat: "Genel Kavramlar",
+    en: "Mobility vs. Flexibility",
+    tr: "Mobilite ve Esneklik Farkı",
+    desc: "Esneklik: pasif hareket açıklığı (kas uzunluğu). Mobilite: eklemin aktif kontrol altında hareket edebileceği alan. Spor için mobilite daha kritik — kontrollü hareket gerektirir.",
+    ex: "Oyuncu pasif olarak split yapabiliyor (esneklik var). Ama squat'ta kalçası tam çökelemiyor (mobilite yok). Farklı iki kavram — antrenman hedefleri de farklı olmalı."
+  },
+  {
+    cat: "Genel Kavramlar",
+    en: "Individualization",
+    tr: "Bireyselleştirme",
+    desc: "Aynı antrenman programının herkese uygulanamayacağı prensibi. Her oyuncunun fizyolojik kapasitesi, psikolojisi, geçmişi ve toparlanma hızı farklıdır.",
+    ex: "İki oyuncu aynı squat programını alıyor. Biri 6 haftada güçlenirken diğeri plateau yapıyor — çünkü ikinci oyuncunun aerobik baz yetersiz. Bireysel değerlendirme şarttır."
+  },
+  {
+    cat: "Genel Kavramlar",
+    en: "Variation",
+    tr: "Çeşitlilik",
+    desc: "Adaptasyonu sürdürmek ve antrenman tekdüzeliğini kırmak için uyaran, yöntem veya araçların değiştirilmesi. Fazla çeşitlilik beceri gelişimini engeller; denge önemli.",
+    ex: "Her 4 haftada bir egzersiz seçiminde değişiklik (Romanian deadlift yerine goodmorning) adaptasyonu canlı tutar. Ama temel hareket örüntüleri korunmalı."
+  },
+  {
+    cat: "Genel Kavramlar",
+    en: "Bilateral Deficit",
+    tr: "İki Taraflı Güç Açığı",
+    desc: "İki tarafı aynı anda kullanırken tek tarafı ayrı ayrı kullanmaktan daha az toplam kuvvet üretme olgusu. Spor hareketlerinin büyük çoğunluğu tek taraflıdır.",
+    ex: "Oyuncu bilateral squat: 100 kg. Sağ bacak tek: 60 kg, sol: 60 kg → toplam 120 kg. Bilateral sırasında potansiyelini kullanamıyor. Tek bacak çalışmaları bu açığı kapatır."
+  },
+  {
+    cat: "Genel Kavramlar",
+    en: "Peak Power",
+    tr: "Zirve Güç",
+    desc: "Birim zamanda yapılan maksimum iş miktarı (Watt). Güç = Kuvvet × Hız. Her ikisini birlikte optimize etmek patlayıcı sporlar için kritik.",
+    ex: "Servis hızı Kuvvet × Hız × Teknik. Kuvvet çalışması + hız çalışması + uygun teknik = maksimal servis gücü. Sadece kuvvet yetmez, hız da eğitilmeli."
+  }
+];
+
+// ─── BUILD UI ─────────────────────────────────────────────
+const categories = [...new Set(DATA.map(d => d.cat))];
+let activeFilter = 'all';
+let searchQuery = '';
+
+// Total counts
+document.getElementById('total-count').textContent = DATA.length;
+document.getElementById('cat-count').textContent = categories.length;
+
+// Filters
+const filtersEl = document.getElementById('filters');
+const allBtn = document.createElement('button');
+allBtn.className = 'filter-btn active';
+allBtn.textContent = 'Tümü';
+allBtn.dataset.cat = 'all';
+filtersEl.appendChild(allBtn);
+
+categories.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn';
+  btn.textContent = cat;
+  btn.dataset.cat = cat;
+  filtersEl.appendChild(btn);
+});
+
+filtersEl.addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  activeFilter = btn.dataset.cat;
+  filtersEl.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value.toLowerCase().trim();
+  activeFilter = 'all';
+  filtersEl.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  filtersEl.querySelector('[data-cat="all"]').classList.add('active');
+  render();
+});
+
+function render() {
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  let total = 0;
+
+  const filtered = DATA.filter(item => {
+    const matchCat = activeFilter === 'all' || item.cat === activeFilter;
+    const matchSearch = !searchQuery || 
+      item.en.toLowerCase().includes(searchQuery) || 
+      item.tr.toLowerCase().includes(searchQuery) ||
+      item.desc.toLowerCase().includes(searchQuery) ||
+      item.ex.toLowerCase().includes(searchQuery);
+    return matchCat && matchSearch;
+  });
+
+  if (filtered.length === 0) {
+    document.getElementById('no-results').style.display = 'block';
+    document.getElementById('visible-count').innerHTML = '';
+    return;
+  }
+  document.getElementById('no-results').style.display = 'none';
+
+  const byCategory = {};
+  filtered.forEach(item => {
+    if (!byCategory[item.cat]) byCategory[item.cat] = [];
+    byCategory[item.cat].push(item);
+  });
+
+  Object.keys(byCategory).forEach(cat => {
+    const items = byCategory[cat];
+    total += items.length;
+
+    const header = document.createElement('div');
+    header.className = 'category-header';
+    header.innerHTML = `<span class="cat-label">${cat}</span><div class="cat-line"></div><span class="cat-count">${items.length}</span>`;
+    main.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.className = 'cards';
+
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-head">
+          <div class="card-left">
+            <div class="card-en">${item.en}</div>
+            <div class="card-tr">${item.tr}</div>
+          </div>
+          <div class="card-arrow">+</div>
+        </div>
+        <div class="card-body">
+          <div class="card-desc">${item.desc}</div>
+          <div class="example-block">
+            <div class="example-label">▶ Örnek</div>
+            <div class="example-text">${item.ex}</div>
+          </div>
+        </div>
+      `;
+      card.querySelector('.card-head').addEventListener('click', () => {
+        const isOpen = card.classList.contains('open');
+        document.querySelectorAll('.card.open').forEach(c => c.classList.remove('open'));
+        if (!isOpen) card.classList.add('open');
+      });
+      grid.appendChild(card);
+    });
+    main.appendChild(grid);
+  });
+
+  document.getElementById('visible-count').innerHTML = `<span>${total}</span> terim gösteriliyor`;
+}
+
+render();
+</script>
+</body>
+</html>
