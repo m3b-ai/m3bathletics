@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>m3b — Yaralanma Önleme Programı</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --surface2: #1a1a1a;
+    --border: #222;
+    --accent: #c8f04b;
+    --accent-dim: rgba(200,240,75,0.10);
+    --text: #e8e8e8;
+    --muted: #666;
+    --muted2: #444;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+  header {
+    padding: 40px 24px 28px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(13,13,13,0.97);
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .header-inner { max-width: 860px; margin: 0 auto; }
+  .brand { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px; }
+  h1 { font-size: clamp(24px, 4vw, 36px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 6px; }
+  .subtitle { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+
+  .progress-wrap { display: flex; gap: 4px; margin-bottom: 4px; }
+  .prog-seg { height: 3px; flex: 1; border-radius: 2px; background: var(--border); transition: background 0.3s; }
+  .prog-seg.done { background: var(--accent); }
+  .prog-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.08em; }
+  .prog-label span { color: var(--accent); }
+
+  .reset-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    padding: 6px 14px; border-radius: 20px; font-size: 11px;
+    font-family: 'DM Mono', monospace; cursor: pointer; letter-spacing: 0.06em;
+    transition: all 0.15s; margin-top: 12px;
+  }
+  .reset-btn:hover { border-color: var(--muted); color: var(--text); }
+
+  main { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  .phase-header { display: flex; align-items: center; gap: 14px; margin: 44px 0 18px; }
+  .phase-header:first-of-type { margin-top: 0; }
+  .phase-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .phase-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .phase-line { flex: 1; height: 1px; background: var(--border); }
+  .phase-count { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted2); }
+
+  .cards { display: grid; gap: 8px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color 0.2s; }
+  .card:hover { border-color: #2a2a2a; }
+  .card.open { border-color: var(--accent); }
+  .card.completed .card-num { color: var(--accent); }
+
+  .card-head { display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer; user-select: none; }
+  .card-num { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted2); width: 20px; flex-shrink: 0; transition: color 0.2s; }
+
+  .card-check {
+    width: 20px; height: 20px; border: 1.5px solid var(--border); border-radius: 5px;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; transition: all 0.2s; cursor: pointer;
+  }
+  .card.completed .card-check { background: var(--accent); border-color: var(--accent); color: #000; }
+
+  .card-info { flex: 1; min-width: 0; }
+  .card-tr { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-meta { display: flex; gap: 12px; margin-top: 3px; flex-wrap: wrap; }
+  .card-tag { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.06em; }
+  .card-tag.has-video { color: var(--accent); opacity: 0.7; }
+
+  .card-arrow { font-size: 14px; color: var(--muted2); transition: transform 0.25s, color 0.2s; font-family: 'DM Mono', monospace; flex-shrink: 0; }
+  .card.open .card-arrow { transform: rotate(45deg); color: var(--accent); }
+
+  .card-body { display: none; border-top: 1px solid var(--border); }
+  .card.open .card-body { display: block; }
+
+  .card-content { padding: 16px; }
+  .desc-text { font-size: 13px; line-height: 1.7; color: #a0a0a0; margin-bottom: 14px; }
+
+  .sets-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .set-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text); letter-spacing: 0.04em; }
+  .set-pill.accent { background: var(--accent-dim); border-color: rgba(200,240,75,0.25); color: var(--accent); }
+
+  /* THUMBNAIL LINK */
+  .video-thumb-wrap {
+    position: relative;
+    cursor: pointer;
+    display: block;
+    text-decoration: none;
+    border-top: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .video-thumb-wrap.portrait {
+    max-width: 220px;
+    margin: 0 auto;
+  }
+  .thumb-img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    background: #111;
+  }
+  .video-thumb-wrap.portrait .thumb-img {
+    aspect-ratio: 9/16;
+    object-fit: cover;
+  }
+  .thumb-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s;
+  }
+  .video-thumb-wrap:hover .thumb-overlay { background: rgba(0,0,0,0.5); }
+  .play-btn {
+    width: 52px; height: 52px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    color: #000;
+    transition: transform 0.2s;
+  }
+  .video-thumb-wrap:hover .play-btn { transform: scale(1.1); }
+  .play-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #fff;
+    letter-spacing: 0.08em;
+    background: rgba(0,0,0,0.5);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .no-video {
+    padding: 18px 16px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted2);
+    letter-spacing: 0.08em;
+    border-top: 1px solid var(--border);
+  }
+
+  footer { text-align: center; padding: 28px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted2); border-top: 1px solid var(--border); letter-spacing: 0.08em; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">m3b Athletics — Yaralanma Önleme</div>
+    <h1>Nöromusküler<br>Antrenman Programı</h1>
+    <p class="subtitle">FIFA 11+ & PEP Program bazlı · 30 egzersiz · Videolu anlatım</p>
+    <div class="progress-wrap" id="progress-bar"></div>
+    <div class="prog-label"><span id="done-count">0</span> / 30 tamamlandı</div>
+    <button class="reset-btn" onclick="resetAll()">Sıfırla</button>
+  </div>
+</header>
+
+<main id="main"></main>
+<footer>© m3b Athletics · Yaralanma Önleme Programı</footer>
+
+<script>
+const EXERCISES = [
+  { id:1,  phase:"Isınma",                  tr:"Jogging — Düz Koşu",                  sets:"2 × 60 sn",          intensity:"Düşük tempo",   desc:"Düz zeminde hafif tempo koşu. Vücut ısısını artırır, kan akışını hazırlar. Adım frekansı ritimli, omuzlar gevşek.", video:null, isShort:false },
+  { id:2,  phase:"Isınma",                  tr:"Kalça Dışa Açma Koşusu",              sets:"2 × 20m",            intensity:"Hafif-orta",    desc:"Koşarken kalçayı dışarıya açarak adım atma. Kalça abduktörlerini aktive eder, IT band'ı hazırlar.", video:null, isShort:false },
+  { id:3,  phase:"Isınma",                  tr:"Kalça İçe Kapama Koşusu",             sets:"2 × 20m",            intensity:"Hafif-orta",    desc:"Koşarken kalçayı içeri kapatarak bacakları çapraz adımla ilerletme. Addüktörleri ve pelvik stabiliteyi uyarır.", video:null, isShort:false },
+  { id:4,  phase:"Isınma",                  tr:"Çevre Koşusu",                        sets:"2 × tur",            intensity:"Orta tempo",    desc:"Alan çevresinde tempolu koşu. Hem kardiyovasküler sistemi hem de alt ekstremiteleri ısıtır.", video:null, isShort:false },
+  { id:5,  phase:"Isınma",                  tr:"Öne Atlayış + Dur",                   sets:"2 × 10 tekrar",      intensity:"Orta-yüksek",   desc:"İleri doğru atlayıp sabit durma. Deselerasyon mekanizmasını aktive eder. Diz kontrolü için kritik.", video:null, isShort:false },
+  { id:6,  phase:"Isınma",                  tr:"Temas Koşusu",                        sets:"2 × 20m",            intensity:"Orta",          desc:"Partner ile temas içeren kısa mesafe koşu egzersizi. Reaksiyon ve denge aktivasyonunu sağlar.", video:null, isShort:false },
+  { id:7,  phase:"Kuvvetlendirme",          tr:"Nordic Hamstring Curl",               sets:"3 × 6-8 tekrar",     intensity:"Yüksek",        desc:"Dizler bükerek öne yavaş eğilme. Hamstringin eksantrik kuvvetini geliştirir. ACL ve hamstring yaralanmalarını önlemede en kanıtlı yöntemlerden biri.", video:"wwgtGMHhS8Y", link:"https://www.youtube.com/shorts/wwgtGMHhS8Y", isShort:true },
+  { id:8,  phase:"Kuvvetlendirme",          tr:"Single Leg Squat",                    sets:"3 × 8 tekrar / bacak", intensity:"Orta-yüksek", desc:"Tek bacak üzerinde çömelme. Quadriceps, gluteus medius ve pelvik stabiliteyi geliştirir. Fonksiyonel diz kontrolü için temel egzersizdir.", video:"keSzg7MaoVQ", link:"https://www.youtube.com/watch?v=keSzg7MaoVQ", isShort:false },
+  { id:9,  phase:"Kuvvetlendirme",          tr:"Bulgarian Split Squat",               sets:"3 × 10 tekrar / bacak", intensity:"Yüksek",     desc:"Arka ayak yüksekte çömelme hareketi. Quad, glute ve hip flexor'ı birlikte çalıştırır. Bilateral deficiti azaltır.", video:"or1frhkjBDc", link:"https://youtube.com/shorts/or1frhkjBDc", isShort:true },
+  { id:10, phase:"Kuvvetlendirme",          tr:"Romanian Deadlift",                   sets:"3 × 10 tekrar",      intensity:"Orta-yüksek",   desc:"Diz hafif bükük, bel düz kalarak öne eğilme. Hamstring, gluteus maximus ve erektör spinae'yı çalıştırır. Posterior zincir gücünün temelidir.", video:"hu3jRvTc_po", link:"https://youtube.com/shorts/hu3jRvTc_po", isShort:true },
+  { id:11, phase:"Kuvvetlendirme",          tr:"Glute Bridge",                        sets:"3 × 15 tekrar",      intensity:"Orta",          desc:"Sırt üstü yatarak kalça kaldırma. Gluteus maximus ve hamstringleri aktive eder, pelvik stabiliteyi güçlendirir.", video:"RrU4zx4ysnI", link:"https://youtube.com/shorts/RrU4zx4ysnI", isShort:true },
+  { id:12, phase:"Kuvvetlendirme",          tr:"Single Leg Glute Bridge",             sets:"3 × 12 tekrar / bacak", intensity:"Orta-yüksek", desc:"Tek bacakla kalça kaldırma. Gluteus medius ve minimus'u daha fazla aktive eder. Pelvik tilt kontrolü için kritik.", video:"qB_bC7-CQjI", link:"https://youtube.com/shorts/qB_bC7-CQjI", isShort:true },
+  { id:13, phase:"Kuvvetlendirme",          tr:"Copenhagen Plank",                    sets:"3 × 20-30 sn / taraf", intensity:"Yüksek",      desc:"Yanda yatarak üst bacağı platforma koyup vücudu kaldırma. Adduktörleri yüklü biçimde çalıştırır. Kasık yaralanmalarını önlemede altın standarttır.", video:"kXTHTV6--Bo", link:"https://youtube.com/shorts/kXTHTV6--Bo", isShort:true },
+  { id:14, phase:"Kuvvetlendirme",          tr:"Lateral Band Walk",                   sets:"3 × 15 adım / yön",  intensity:"Orta",          desc:"Dirence karşı yana adım atma. Gluteus medius'u izole eder, diz içe çökmesini (valgus) engeller.", video:"NnxzMOl797s", link:"https://youtube.com/shorts/NnxzMOl797s", isShort:true },
+  { id:15, phase:"Kuvvetlendirme",          tr:"Calf Raise",                          sets:"3 × 15 tekrar",      intensity:"Orta",          desc:"İki ayak üzerinde parmak ucuna yükselme. Gastrocnemius ve soleus'u güçlendirir. Achilles tendinopati önlemede temel egzersiz.", video:"LNeXr1IMsJ0", link:"https://youtube.com/shorts/LNeXr1IMsJ0", isShort:true },
+  { id:16, phase:"Kuvvetlendirme",          tr:"Single Leg Calf Raise",               sets:"3 × 12 tekrar / bacak", intensity:"Orta-yüksek", desc:"Tek bacakta parmak ucuna yükselme. İki taraflı kuvvet farkını tespit eder ve eşitler. Achilles yüklenme kapasitesini artırır.", video:"nekKEq-6FiY", link:"https://youtube.com/shorts/nekKEq-6FiY", isShort:true },
+  { id:17, phase:"Denge & Propriyosepsiyon", tr:"Single Leg Balance — Düz Zemin",    sets:"3 × 30 sn / bacak",  intensity:"Düşük-orta",    desc:"Düz zeminde tek bacak üzerinde durma. Ayak bileği ve diz propriyosepsiyonunu geliştirir. Gözler açık → kapalı ile progrese edilir.", video:"oe_tvZNzOGk", link:"https://youtube.com/shorts/oe_tvZNzOGk", isShort:true },
+  { id:18, phase:"Denge & Propriyosepsiyon", tr:"Single Leg Balance — Göz Kapalı",   sets:"3 × 20 sn / bacak",  intensity:"Orta",          desc:"Gözler kapalı tek bacak dengesi. Görsel ipuçları kaldırıldığında propriyoseptif sistem daha fazla devreye girer.", video:null, isShort:false },
+  { id:19, phase:"Denge & Propriyosepsiyon", tr:"Single Leg Balance — Denge Tahtası",sets:"3 × 30 sn / bacak",  intensity:"Orta-yüksek",   desc:"Dengesiz zemin üzerinde tek bacak dengesi. Ayak bileği ve diz etrafındaki stabilizatör kasları aktive eder.", video:null, isShort:false },
+  { id:20, phase:"Denge & Propriyosepsiyon", tr:"Single Leg Squat + Reach",          sets:"3 × 8 tekrar / bacak", intensity:"Orta-yüksek", desc:"Tek bacakta çömelirken diğer bacağı öne-yana-arkaya uzatma (Star Excursion). Dinamik denge ve pelvik kontrolü birlikte çalıştırır.", video:"NnxzMOl797s", link:"https://youtube.com/shorts/NnxzMOl797s", isShort:true },
+  { id:21, phase:"Pliometri",               tr:"Squat Jump",                          sets:"3 × 8 tekrar",       intensity:"Yüksek",        desc:"Çömelip maksimal güçle yukarı sıçrama ve yumuşak iniş. Gerilme-kısalma döngüsünü aktive eder. Yumuşak inişe odaklan: diz-kalça fleksiyonu.", video:"LNeXr1IMsJ0", link:"https://youtube.com/shorts/LNeXr1IMsJ0", isShort:true },
+  { id:22, phase:"Pliometri",               tr:"Single Leg Hop — İleri",              sets:"3 × 6 tekrar / bacak", intensity:"Yüksek",      desc:"Tek bacakla ileri doğru sıçrayıp aynı bacakla dengeyle inme. Fonksiyonel güç ve anterior stabilitenin geliştirilmesi. Kontrol önce, mesafe sonra.", video:"nekKEq-6FiY", link:"https://youtube.com/shorts/nekKEq-6FiY", isShort:true },
+  { id:23, phase:"Pliometri",               tr:"Single Leg Hop — Yan",                sets:"3 × 6 tekrar / bacak", intensity:"Yüksek",      desc:"Tek bacakla yana sıçrayıp dengeyle inme. Lateral stabiliteyi ve frontal planda nöromusküler kontrolü geliştirir.", video:"tCzxYzBwYyo", link:"https://youtube.com/shorts/tCzxYzBwYyo", isShort:true },
+  { id:24, phase:"Pliometri",               tr:"Box Jump",                            sets:"3 × 6 tekrar",       intensity:"Yüksek",        desc:"Kutu üzerine çift bacakla sıçrama ve kontrollü iniş. Patlayıcı kuvvet ve güvenli iniş mekaniklerini birleştirir.", video:"bXgFx93CGow", link:"https://youtube.com/shorts/bXgFx93CGow", isShort:true },
+  { id:25, phase:"Pliometri",               tr:"Lateral Bound",                       sets:"3 × 8 tekrar / yön", intensity:"Yüksek",        desc:"Tek bacaktan yana sıçrayıp karşı bacakla dengeyle iniş. Lateral güç üretimi ve dinamik stabiliteyi geliştirir.", video:"IyMLKJX4MRU", link:"https://youtube.com/shorts/IyMLKJX4MRU", isShort:true },
+  { id:26, phase:"Soğuma & Esneme",         tr:"Quadriceps Germe",                    sets:"2 × 30 sn / bacak",  intensity:"Hafif",         desc:"Ayakta durup topuğu kalçaya çekerek ön bacağı germe. Hip fleksörlere de etkisi var.", video:"RLZBBlR1C2g", link:"https://youtube.com/shorts/RLZBBlR1C2g", isShort:true },
+  { id:27, phase:"Soğuma & Esneme",         tr:"Hamstring Germe",                     sets:"2 × 30 sn / bacak",  intensity:"Hafif",         desc:"Oturarak ya da ayakta öne eğilerek arka bacak kaslarını germe. Statik germe soğumada etkilidir.", video:"ywgDXzYD6v8", link:"https://youtube.com/shorts/ywgDXzYD6v8", isShort:true },
+  { id:28, phase:"Soğuma & Esneme",         tr:"Hip Flexor Germe",                    sets:"2 × 30 sn / bacak",  intensity:"Hafif",         desc:"Yarım diz üstü pozisyonda kalçayı öne iterek iliopsoas'ı germe. Uzun süre oturanlarda öncelikli.", video:"V01aVqxOhbU", link:"https://youtube.com/shorts/V01aVqxOhbU", isShort:true },
+  { id:29, phase:"Soğuma & Esneme",         tr:"Kalça Dış Rotasyon Germe",            sets:"2 × 30 sn / bacak",  intensity:"Hafif",         desc:"Oturarak figür-4 pozisyonunda piriformis ve dış rotasyon kaslarını germe.", video:"LXeJOSJ9sHo", link:"https://youtube.com/shorts/LXeJOSJ9sHo", isShort:true },
+  { id:30, phase:"Soğuma & Esneme",         tr:"Baldır Germe",                        sets:"2 × 30 sn / bacak",  intensity:"Hafif",         desc:"Duvara yaslanarak gastrocnemius ve soleus'u germe. Achilles geçmişi olan oyuncular için günde 2 kez önerilir.", video:"dh5cQlchiA8", link:"https://youtube.com/shorts/dh5cQlchiA8", isShort:true },
+];
+
+const STORAGE_KEY = 'm3b-diz-v2';
+let completed = [];
+try { completed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) {}
+
+function saveProgress() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(completed)); } catch(e) {}
+}
+function resetAll() {
+  if (confirm('Tüm ilerlemeyi sıfırlamak istiyor musun?')) {
+    completed = [];
+    saveProgress();
+    render();
+  }
+}
+
+function render() {
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  const phases = [...new Set(EXERCISES.map(e => e.phase))];
+
+  phases.forEach(phase => {
+    const items = EXERCISES.filter(e => e.phase === phase);
+    const header = document.createElement('div');
+    header.className = 'phase-header';
+    header.innerHTML = `<div class="phase-dot"></div><span class="phase-label">${phase}</span><div class="phase-line"></div><span class="phase-count">${items.length}</span>`;
+    main.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.className = 'cards';
+
+    items.forEach(ex => {
+      const isDone = completed.includes(ex.id);
+      const card = document.createElement('div');
+      card.className = 'card' + (isDone ? ' completed' : '');
+
+      const thumbUrl = ex.video ? `https://img.youtube.com/vi/${ex.video}/hqdefault.jpg` : null;
+
+      card.innerHTML = `
+        <div class="card-head">
+          <div class="card-num">${String(ex.id).padStart(2,'0')}</div>
+          <div class="card-check">${isDone ? '✓' : ''}</div>
+          <div class="card-info">
+            <div class="card-tr">${ex.tr}</div>
+            <div class="card-meta">
+              <span class="card-tag">${ex.sets}</span>
+              <span class="card-tag">${ex.intensity}</span>
+              ${ex.video ? '<span class="card-tag has-video">▶ Video</span>' : ''}
+            </div>
+          </div>
+          <div class="card-arrow">+</div>
+        </div>
+        <div class="card-body">
+          <div class="card-content">
+            <div class="desc-text">${ex.desc}</div>
+            <div class="sets-row">
+              <div class="set-pill accent">${ex.sets}</div>
+              <div class="set-pill">${ex.intensity}</div>
+            </div>
+          </div>
+          ${ex.video && ex.link
+            ? `<a href="${ex.link}" target="_blank" rel="noopener" class="video-thumb-wrap${ex.isShort ? ' portrait' : ''}">
+                <img class="thumb-img" src="${thumbUrl}" alt="${ex.tr}" onerror="this.style.background='#111';this.style.height='160px';">
+                <div class="thumb-overlay">
+                  <div class="play-btn">▶</div>
+                  <div class="play-label">YouTube'da İzle</div>
+                </div>
+               </a>`
+            : `<div class="no-video">Video yakında eklenecek</div>`
+          }
+        </div>
+      `;
+
+      card.querySelector('.card-head').addEventListener('click', (e) => {
+        if (e.target.closest('.card-check')) return;
+        const isOpen = card.classList.contains('open');
+        document.querySelectorAll('.card.open').forEach(c => c.classList.remove('open'));
+        if (!isOpen) card.classList.add('open');
+      });
+
+      card.querySelector('.card-check').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (completed.includes(ex.id)) {
+          completed = completed.filter(x => x !== ex.id);
+          card.classList.remove('completed');
+          card.querySelector('.card-check').textContent = '';
+          card.querySelector('.card-num').style.color = '';
+        } else {
+          completed.push(ex.id);
+          card.classList.add('completed');
+          card.querySelector('.card-check').textContent = '✓';
+        }
+        saveProgress();
+        updateProgress();
+      });
+
+      grid.appendChild(card);
+    });
+    main.appendChild(grid);
+  });
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const bar = document.getElementById('progress-bar');
+  bar.innerHTML = '';
+  EXERCISES.forEach(ex => {
+    const seg = document.createElement('div');
+    seg.className = 'prog-seg' + (completed.includes(ex.id) ? ' done' : '');
+    bar.appendChild(seg);
+  });
+  document.getElementById('done-count').textContent = completed.length;
+}
+
+render();
+</script>
+</body>
+</html>
